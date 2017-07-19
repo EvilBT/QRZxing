@@ -1,4 +1,4 @@
-package xyz.zpayh.qrzxing;
+package xyz.zpayh.sample;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("xyz.zpayh.qrzxing", appContext.getPackageName());
+        assertEquals("xyz.zpayh.sample", appContext.getPackageName());
     }
 }
