@@ -1,6 +1,7 @@
 package xyz.zpayh.sample;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -10,14 +11,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.google.zxing.Result;
 import com.google.zxing.WriterException;
 
+import xyz.zpayh.qrzxing.decode.QRCodeDecoder;
 import xyz.zpayh.qrzxing.encode.QRCodeEncoder;
 
 public class MainActivity extends AppCompatActivity {
 
     private ImageView mQRCodeView;
+    private TextView mTextView;
+
+    private View mRoot;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mRoot = findViewById(R.id.root);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -35,16 +44,52 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mQRCodeView = (ImageView) findViewById(R.id.iv_qrcode);
+        mTextView = (TextView) findViewById(R.id.textView);
+
+        mQRCodeView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                mRoot.setDrawingCacheEnabled(true);
+                Bitmap bitmap = mRoot.getDrawingCache();
+                final long start = System.currentTimeMillis();
+                //Result result = QRCodeDecoder.decode(bitmap);
+                Result result = QRCodeDecoder.decode(bitmap);
+                final long end = System.currentTimeMillis();
+                mRoot.setDrawingCacheEnabled(false);
+
+                if (result != null){
+                    mTextView.setText(result.toString()+":"+(end-start));
+                }
+
+                return true;
+            }
+        });
+
+        findViewById(R.id.fab2).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mRoot.setDrawingCacheEnabled(true);
+                Bitmap bitmap = mRoot.getDrawingCache();
+                final long start = System.currentTimeMillis();
+                Result result = QRCodeDecoder.decode(bitmap);
+                final long end = System.currentTimeMillis();
+                mRoot.setDrawingCacheEnabled(false);
+
+                if (result != null){
+                    mTextView.setText(result.toString()+":"+(end-start));
+                }
+            }
+        });
     }
 
     private void encodeQR() {
+        final Bitmap bitmap = BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcher_round);
         new AsyncTask<Void,Void,Bitmap>(){
             int width = mQRCodeView.getWidth();
             @Override
             protected Bitmap doInBackground(Void... voids) {
                 try {
-
-                    return QRCodeEncoder.encode("我喜欢钟婷娜呀",width);
+                    return QRCodeEncoder.encode("我喜欢钟婷娜呀",width,bitmap);
                 } catch (WriterException e) {
                     e.printStackTrace();
                     return null;

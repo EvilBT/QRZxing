@@ -1,9 +1,10 @@
 package xyz.zpayh.qrzxing.encode;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 
-import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
@@ -39,7 +40,7 @@ public final class QRCodeEncoder {
         BitMatrix result;
 
         try {
-            result = new QRCodeWriter().encode(content, BarcodeFormat.QR_CODE,dimension,dimension,hints);
+            result = new QRCodeWriter().encode(content,dimension,dimension,hints);
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -56,6 +57,58 @@ public final class QRCodeEncoder {
 
         Bitmap bitmap = Bitmap.createBitmap(width,height, Bitmap.Config.ARGB_8888);
         bitmap.setPixels(pixels,0, width, 0, 0, width, height);
+        return bitmap;
+    }
+
+    public static Bitmap encode(String content, int dimension, Bitmap icon) throws WriterException {
+        EnumMap<EncodeHintType,Object> hints = new EnumMap<>(EncodeHintType.class);
+
+        //添加默认编码方式UTF-8
+        hints.put(EncodeHintType.CHARACTER_SET,"UTF-8");
+        //
+        hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
+
+        hints.put(EncodeHintType.MARGIN,1);
+
+        BitMatrix result;
+
+        try {
+            result = new QRCodeWriter().encode(content,dimension,dimension,hints);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+
+        int width = result.getWidth();
+        int height = result.getHeight();
+        int[] pixels = new int[width*height];
+        for (int y = 0; y < height; y++) {
+            int offset = y * width;
+            for (int x = 0; x < width; x++) {
+                pixels[offset + x] = result.get(x,y) ? BLACK : WHITE;
+            }
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(width,height, Bitmap.Config.ARGB_8888);
+        bitmap.setPixels(pixels,0, width, 0, 0, width, height);
+
+        if (icon != null){
+            float scaleSize = dimension / 5.0f;
+            Matrix matrix = new Matrix();
+            final int iWidth = icon.getWidth();
+            final int iHeight = icon.getHeight();
+
+            matrix.setScale(scaleSize/iWidth, scaleSize/iHeight);
+
+            Bitmap scaleIcon = Bitmap.createBitmap(icon,0,0,iWidth,iHeight,matrix,false);
+
+            final int scaleWidth = scaleIcon.getWidth();
+            final int scaleHeight = scaleIcon.getHeight();
+
+            Canvas canvas = new Canvas(bitmap);
+
+            canvas.drawBitmap(scaleIcon,(width-scaleWidth)/2,(height-scaleHeight)/2,null);
+        }
+
         return bitmap;
     }
 }
